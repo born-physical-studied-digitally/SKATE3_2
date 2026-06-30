@@ -1,6 +1,9 @@
 from scipy import misc
 from .dir import ensure_dir_exists
 from numpy.random import RandomState
+import imageio.v2 as imageio
+import numpy.ma as ma
+import numpy as np
 
 def pad(number):
   numstr = str(number)
@@ -31,7 +34,15 @@ class Debug:
 
     count = cls.stage_count[stage] = cls.stage_count.get(stage, -1) + 1
     filename = "%s.%s.%s.%s.png" % (pad(cls.global_count), stage, pad(count), name)
-    misc.imsave(cls.debug_dir+"/"+filename, img)
+    if isinstance(img, ma.MaskedArray):
+      img = img.filled(0) #convert masked array to regular array by replacing any masked value with 0
+
+    if np.issubdtype(img.dtype, np.floating): #Convert float images to uin8 for PNG saving
+      img = (img * 255).clip(0, 255).astype(np.uint8)
+    elif not np.issubdtype(img.dtype, np.number):
+      img = img.astype(np.uint8)
+
+    imageio.imwrite(cls.debug_dir+"/"+filename, img)
     cls.global_count = cls.global_count + 1
 
   @classmethod

@@ -7,7 +7,8 @@ import cv2
 from skimage.filters import threshold_otsu
 from skimage.morphology import disk
 from skimage.segmentation import find_boundaries
-from scipy.ndimage import label
+from scipy.ndimage.measurements import label
+
 from skimage.transform import hough_line, hough_line_peaks, probabilistic_hough_line
 import skimage.draw as skidraw
 from skimage.color import gray2rgb
@@ -37,10 +38,21 @@ def get_boundary(grayscale_image, scale=1):
 
   Debug.save_image("roi", "opened_image", opened_image)
 
-  timeStart("invert image")
+
+  timeStart("invert image") 
   opened_image = np.invert(opened_image)
   timeEnd("invert image")
-
+######### Added 5.11
+  timeStart("bridge internal gaps")
+  
+  kernel_vert = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(100 * scale)))
+  opened_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel_vert)
+  
+  kernel_horiz = cv2.getStructuringElement(cv2.MORPH_RECT, (int(150 * scale), 1))
+  opened_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel_horiz)
+  
+  timeEnd("bridge internal gaps")
+#########
   timeStart("segment image into connected regions")
   labeled_components, num_components = label(opened_image)
   timeEnd("segment image into connected regions")
@@ -88,8 +100,8 @@ def get_box_lines(boundary, image = None):
 
   timeStart("get hough lines")
   hough_lines = {
-    "left": np.array(get_hough_lines(image_regions["left"], min_angle = -10, max_angle = 10)),
-    "right": np.array(get_hough_lines(image_regions["right"], min_angle = -10, max_angle = 10)),
+    "left": np.array(get_hough_lines(image_regions["left"], min_angle = -10, max_angle = 10)), #changed -10 to -35, 10 to 35 on 5.9
+    "right": np.array(get_hough_lines(image_regions["right"], min_angle = -10, max_angle = 10)), #changed -10 to 35, 10 to 35 on 5.9
     "top": np.array(get_hough_lines(image_regions["top"], min_angle = -120, max_angle = -70)),
     "bottom": np.array(get_hough_lines(image_regions["bottom"], min_angle = -120, max_angle = -70))
   }
@@ -127,8 +139,8 @@ def get_corners(lines, image = None):
 
   if Debug.active:
     image_copy = np.copy(image)
-    inner_circles = { corner_name: skidraw.circle(corner[1], corner[0], 10, shape=image.shape) for corner_name, corner in corners.items() }
-    outer_circles = { corner_name: skidraw.circle(corner[1], corner[0], 50, shape=image.shape) for corner_name, corner in corners.items() }
+    inner_circles = { corner_name: skidraw.disk((corner[1], corner[0]), 10, shape=image.shape) for corner_name, corner in corners.items() }
+    outer_circles = { corner_name: skidraw.disk((corner[1], corner[0]), 50, shape=image.shape) for corner_name, corner in corners.items() }
     for corner_name in inner_circles:
       image_copy[outer_circles[corner_name]] = 0.0
       image_copy[inner_circles[corner_name]] = 1.0
@@ -166,3 +178,4 @@ def corners_to_geojson(corners):
   newPolygon = geojson.Polygon([[corners["top_left"], corners["top_right"], corners["bottom_right"], corners["bottom_left"], corners["top_left"]]])
   newFeature = geojson.Feature(geometry = newPolygon)
   return newFeature
+
