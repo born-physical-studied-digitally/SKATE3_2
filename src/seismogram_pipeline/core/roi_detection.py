@@ -45,10 +45,10 @@ def get_boundary(grayscale_image, scale=1):
 ######### Added 5.11
   timeStart("bridge internal gaps")
   
-  kernel_vert = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(100 * scale)))
+  kernel_vert = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(100 * scale))) #100 is the kernel height guaranteed to span across one trace
   opened_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel_vert)
   
-  kernel_horiz = cv2.getStructuringElement(cv2.MORPH_RECT, (int(150 * scale), 1))
+  kernel_horiz = cv2.getStructuringElement(cv2.MORPH_RECT, (int(150 * scale), 1)) #150 is ther kernal width guaranteed to span through texts
   opened_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel_horiz)
   
   timeEnd("bridge internal gaps")
