@@ -130,16 +130,11 @@ def get_trace_markers(image_gray, background):
   ridges_all = ridges_h | ridges_v
   return ridges_all
 
-def remove_small_segments_and_edges(image_bin, min_trace_size = 6,
-                  min_edge_length = 4):
-  '''
-  placeholder docstring
-  '''
-  remove_small_objects(image_bin, min_size = min_trace_size, connectivity=2,
-             in_place = True)
+def remove_small_segments_and_edges(image_bin, min_trace_size=6,
+                  min_edge_length=4):
+  image_bin = remove_small_objects(image_bin, min_size=min_trace_size, connectivity=2)
   image_bin = ~image_bin
-  remove_small_objects(image_bin, min_size = min_edge_length, connectivity=2,
-             in_place = True)
+  image_bin = remove_small_objects(image_bin, min_size=min_edge_length, connectivity=2)
   image_bin = ~image_bin
   return image_bin
 
