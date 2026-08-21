@@ -4,3 +4,12 @@ out/*
 *.png
 node_modules
 **/.DS_Store
+.venv/
+__pycache__
+docs/build/
+src/*.egg-info/
+*.egg-info/
+build/
+dist/
+__pycache__/
+.vscode/
