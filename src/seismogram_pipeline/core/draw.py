@@ -1,9 +1,29 @@
 # coding: utf-8
 import numpy as np
+import numpy.typing as npt
+from typing import Optional
 
-
-def _ellipse_in_shape(shape, center, radiuses):
-    """Generate coordinates of points within ellipse bounded by shape."""
+def _ellipse_in_shape(
+    shape: npt.NDArray[np.int_], 
+    center: npt.NDArray[np.float64], 
+    radiuses: npt.NDArray[np.float64],
+) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.intp]]:
+    """
+    Generate coordinates of points within ellipse bounded by shape.
+    
+    Parameters
+    ----------
+    shape : integer array
+        Bounding box shape, [height, width]
+    center : double array
+        Coordinates of the ellipse center, [cy, cx]
+    radiuses : double array
+        Semi-axis lengths of the ellips, [yradius, xradius]
+    Returns
+    -------
+    rr, cc : tuple of int arrays
+        Row & column coordinates inside ellipse relative to the shape
+    """
     y, x = np.ogrid[0:float(shape[0]), 0:float(shape[1])]
     cy, cx = center
     ry, rx = radiuses
@@ -11,12 +31,18 @@ def _ellipse_in_shape(shape, center, radiuses):
     return np.nonzero(distances < 1)
 
 
-def ellipse(cy, cx, yradius, xradius, shape=None):
-    """Generate coordinates of pixels within ellipse.
+def ellipse(
+    cy: float, cx: float,
+    yradius: float, xradius: float, 
+    shape: Optional[tuple[int, ...]] = None,
+) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.intp]]:
+    """
+    Generate coordinates of pixels within ellipse.
+    
     Parameters
     ----------
     cy, cx : double
-        Centre coordinate of ellipse.
+        Centre y,x coordinates of ellipse.
     yradius, xradius : double
         Minor and major semi-axes. ``(x/xradius)**2 + (y/yradius)**2 = 1``.
     shape : tuple, optional
@@ -57,9 +83,9 @@ def ellipse(cy, cx, yradius, xradius, shape=None):
     lower_right = np.floor(center + radiuses).astype(int)
 
     if shape is not None:
-      # Constrain ymin and ymax by shape boundary
-      upper_left = np.maximum(upper_left, np.array([0, 0]))
-      lower_right = np.minimum(lower_right, np.array(shape[:2]) - 1)
+        # Constrain ymin and ymax by shape boundary
+        upper_left = np.maximum(upper_left, np.array([0, 0]))
+        lower_right = np.minimum(lower_right, np.array(shape[:2]) - 1)
 
     # Shifted center is in interval [radiuses - 1, radiuses], so
     # the ellipse must fit in [0, 2*radiuses + 1].
@@ -74,8 +100,14 @@ def ellipse(cy, cx, yradius, xradius, shape=None):
     return rr, cc
 
 
-def circle(cy, cx, radius, shape=None):
-    """Generate coordinates of pixels within circle.
+def circle(
+    cy: float, cx: float,
+    radius: float, 
+    shape: Optional[tuple[np.int_, ...]] = None,
+) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.intp]]:
+    """
+    Generate coordinates of pixels within circle.
+    
     Parameters
     ----------
     cy, cx : double
@@ -97,9 +129,8 @@ def circle(cy, cx, radius, shape=None):
         This function is a wrapper for skimage.draw.ellipse()
     Examples
     --------
-    >>> from skimage.draw import circle
     >>> img = np.zeros((10, 10), dtype=np.uint8)
-    >>> rr, cc = circle(4, 4, 5)
+    >>> rr, cc = circle(4, 4, 5) # use local circle() function
     >>> img[rr, cc] = 1
     >>> img
     array([[0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
