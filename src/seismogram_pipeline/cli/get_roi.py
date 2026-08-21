@@ -17,10 +17,32 @@ Options:
 """
 
 from docopt import docopt
+from typing import Union
+import imageio.v2 as imageio
+import os
 
-def get_roi(in_file, out_file, scale=1, debug_dir=False):
-  if debug_dir:
+
+def get_roi(
+  in_file: str, out_file: str, scale: float = 1, debug_dir: Union[str, bool] = False
+) -> None:
+  """
+  Process grayscale image and write region of interest
+
+  Parameters
+  ----------
+  in_file: str
+      Grayscale seismogram image file path
+  out_file: str
+      Output file path
+  scale: int, default 1 (unused)
+      Image scale factor
+  debug_dir: str | bool, default False
+      Flag whether to save intermediate images
+  """
+
+  if isinstance(debug_dir, str):
     from ..core.dir import ensure_dir_exists
+
     ensure_dir_exists(debug_dir)
 
   from ..core.timer import timeStart, timeEnd
@@ -40,14 +62,15 @@ def get_roi(in_file, out_file, scale=1, debug_dir=False):
   corners_as_geojson = corners_to_geojson(corners)
   timeEnd("convert to geojson")
 
-  if debug_dir:
+  if isinstance(debug_dir, str):
     from ..core.polygon_mask import mask_image
     from scipy import misc
+
     roi_polygon = corners_as_geojson["geometry"]["coordinates"][0]
     timeStart("mask image")
     masked_image = mask_image(image, roi_polygon)
     timeEnd("mask image")
-    misc.imsave(debug_dir+"/masked_image.png", masked_image.filled(0))
+    imageio.imwrite(os.join(debug_dir, "/masked_image.png"), masked_image.filled(0))
 
   if out_file:
     timeStart("saving as geojson")
@@ -57,6 +80,7 @@ def get_roi(in_file, out_file, scale=1, debug_dir=False):
     print(corners_as_geojson)
 
   timeEnd("ROI")
+
 
 def main():
     """Main entry point for the get_roi CLI."""
@@ -70,6 +94,7 @@ def main():
         get_roi(in_file, out_file, scale, debug_dir)
     else:
         print(arguments)
+
 
 if __name__ == '__main__':
     main()
