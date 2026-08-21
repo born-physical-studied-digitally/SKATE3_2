@@ -29,6 +29,18 @@ pip install -e .
 pip install .
 ```
 
+### Run in Docker / Podman
+
+```bash
+# Build container image (Docker)
+docker build -t seismogram-pipeline .
+```
+
+```bash
+# Build container image (Podman)
+podman build -t seismogram-pipeline .
+```
+
 ## Project Structure
 
 ```
@@ -134,6 +146,19 @@ meanlines_geojson = meanlines_to_geojson(meanlines)
 
 # Detect intersections
 intersections = find_intersections(image, roi_corners)
+```
+
+### Container Execution (`run_in_container.sh`)
+
+```bash
+# Example usage from the project root
+
+# Running the whole pipeline
+./scripts/run_in_container.sh --image /app/data/inputs/input.png --output /app/data/outputs/ --scale 0.25
+
+# Example individual processing step (see above for more)
+./scripts/run_in_container.sh seismogram-get-roi --image /app/data/inputs/input.png --output /app/data/outputs/roi.json --scale 0.25
+
 ```
 
 ## Output Format
