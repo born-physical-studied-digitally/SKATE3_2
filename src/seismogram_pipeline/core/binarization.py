@@ -22,8 +22,8 @@ def binary_image(
   image: npt.NDArray[Any],
   markers_trace: Optional[npt.NDArray[Any]] = None,
   markers_background: Optional[npt.NDArray[Any]] = None,
-  min_trace_size: int = None,
-  min_background_size: int = None,
+  min_trace_size: int = 6,
+  min_background_size: int = 4,
 ) -> npt.NDArray[np.bool_]:
   """
   Creates a binary image from grayscale or color input image.
