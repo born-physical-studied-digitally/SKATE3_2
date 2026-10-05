@@ -5,6 +5,8 @@ from .dir import ensure_dir_exists
 from pathlib import Path
 from numpy.random import RandomState
 from imageio.v3 import imwrite
+import numpy as np
+import numpy.ma as ma
 import numpy.typing as npt
 from typing import Any, Optional
 
@@ -90,7 +92,16 @@ class Debug:
     count = cls.stage_count[stage] = cls.stage_count.get(stage, -1) + 1
     filename = f"{pad(cls.global_count)}.{stage}.{pad(count)}.{name}.png"
 
-    # clean file path creation
+    # masked arrays -> regular arrays (masked pixels become 0)
+    if isinstance(img, ma.MaskedArray):
+      img = img.filled(0)
+
+    # PNG needs 0-255 integers: scale float images (0-1), convert bool images
+    if np.issubdtype(img.dtype, np.floating):
+      img = (img * 255).clip(0, 255).astype(np.uint8)
+    elif not np.issubdtype(img.dtype, np.number):
+      img = img.astype(np.uint8)
+
     filepath = Path(cls.debug_dir) / filename
     imwrite(filepath, img)
     cls.global_count = cls.global_count + 1

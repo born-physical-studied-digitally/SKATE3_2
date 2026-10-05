@@ -22,8 +22,8 @@ def binary_image(
   image: npt.NDArray[Any],
   markers_trace: Optional[npt.NDArray[Any]] = None,
   markers_background: Optional[npt.NDArray[Any]] = None,
-  min_trace_size: int = None,
-  min_background_size: int = None,
+  min_trace_size: int = 6,
+  min_background_size: int = 4,
 ) -> npt.NDArray[np.bool_]:
   """
   Creates a binary image from grayscale or color input image.
@@ -164,7 +164,7 @@ def remove_small_segments_and_edges(
   Parameters
   ----------
   image_bin : npt.NDArray[np.bool_]
-      A binary 2-D image array. Modified in place during operations
+      A binary 2-D image array.
   min_trace_size : int, default 6
       Maximum size of small foreground objects to be removed
   min_edge_length : int, default 4
@@ -174,11 +174,9 @@ def remove_small_segments_and_edges(
   image_bin : 2-D Boolean numpy array
       Cleaned version of original input array
   """
-  remove_small_objects(image_bin, min_size = min_trace_size, connectivity=2,
-             in_place = True)
+  image_bin = remove_small_objects(image_bin, min_size=min_trace_size, connectivity=2)
   image_bin = ~image_bin
-  remove_small_objects(image_bin, min_size = min_edge_length, connectivity=2,
-             in_place = True)
+  image_bin = remove_small_objects(image_bin, min_size=min_edge_length, connectivity=2)
   image_bin = ~image_bin
   return image_bin
 

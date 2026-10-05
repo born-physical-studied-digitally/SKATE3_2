@@ -107,17 +107,17 @@ def get_segments(img_gray, img_bin, img_skel, dist, img_intersections,
   segments = img_seg_to_seg_objects(image_segments, num_segments, ridges_h, ridges_v, img_gray)
 
   if Debug.active:
-    from lib.segment_coloring import gray2prism
-    # try to assign different gray values to neighboring segments
-    traces_colored = (image_segments + num_traces * (image_segments % 4)) / float(4 * num_traces)
-    # store a background mask
-    background = traces_colored == 0
-    background = np.dstack((background, background, background))
-    # convert gray values to colors
-    traces_colored = gray2prism(traces_colored)
-    # make background pixels black
-    traces_colored[background] = 0
-    Debug.save_image("segments", "segment_regions", traces_colored)
+    try: 
+      from lib.segment_coloring import gray2prism
+      traces_colored = (image_segments + num_traces * (image_segments % 4)) / float(4 * num_traces)
+      background = traces_colored == 0
+      background = np.dstack((background, background, background))
+      traces_colored = gray2prism(traces_colored)
+      traces_colored[background] = 0
+      Debug.save_image("segments", "segment_regions", traces_colored)
+    except ModuleNotFoundError:
+      print("Warning: segment_coloring module nof found, skipping colored debug image")
+    
 
   if Record.active:
     timeStart("calculate histograms of segment sizes")

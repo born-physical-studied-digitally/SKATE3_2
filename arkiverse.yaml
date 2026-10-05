@@ -1,0 +1,30 @@
+name: skate_seismogram_digitizer
+version: 1.0.0
+description: Digitizes analog seismogram traces, extracting ROI, meanlines, intersections, and segments.
+
+entrypoint:
+  type: container
+  image: arkiverse/skate:1.0.0
+  command: []
+
+runtime:
+  working_dir: /work
+
+inputs:
+  - name: image
+    type: file
+    required: true
+
+outputs:
+  - name: output_json
+    type: json
+    required: true
+  - name: crop_images
+    type: file[]
+    required: true
+
+parameters:
+  - name: scale
+    type: float
+    required: false
+    default: 0.25
