@@ -1,0 +1,124 @@
+# SKATE Seismogram Pipeline Configuration
+# This file configures the image processing and analysis pipeline for the SKATE project,
+# which extracts, traces, and analyzes historical or analog seismogram data.
+
+project:
+  name: "SKATE"
+  version: "0.1.0"
+  environment: "development" # Running mode: development, staging, production
+  debug: false # Set to true to output intermediate debug images and verbose logs
+
+# I/O & File System Paths
+# Defines where the pipeline reads raw data and saves intermediate/final outputs.
+storage:
+  data_dir: "data"             # Base data directory
+  examples_dir: "data/examples" # Directory for reference or example images
+  inputs_dir: "data/inputs"     # Source directory for raw seismogram images
+  outputs_dir: "data/outputs"   # Root directory for pipeline results
+
+  # Standardized filenames for steps in the processing pipeline
+  pipeline_outputs:
+    roi: "roi.json"                             # Region of interest boundaries
+    meanlines: "meanlines.json"                 # Baseline trace paths
+    intersections: "intersections.json"         # Detected trace/grid intersections (JSON)
+    intersections_raster: "intersections_raster.png" # Visual map of intersections
+    segments: "segments.json"                   # Broken down trace segments
+    segment_regions: "segment_regions.png"       # Visual map of segmented areas
+    segment_assignments: "segment_assignments.json" # Segments mapped to specific timeline traces
+
+pipeline_settings:
+  # General image scaling and thresholding limits
+  image_processing:
+    max_intensity: 255            # Maximum pixel value (8-bit grayscale standard)
+    histogram_bins: 257           # Bins used for intensity histogram calculations
+    min_prob_threshold: 0.95      # Minimum confidence probability for feature detection
+    max_segments_reasonable: 11000 # Upper safety limit for processed segments to prevent memory bloat
+  
+  # Morphological filtering for clean black/white conversion
+  binarization:
+    min_trace_size: 6             # Minimum pixel width of a valid seismic trace line
+    min_background_size: 4        # Minimum pixel width to be considered background gap
+    
+  # Hough Transform settings for finding structural grid lines or linear trends
+  hough_lines:
+    angular_step_deg: 0.5         # Angular resolution in degrees for the search matrix
+    num_peaks: 150                # Maximum number of prominent lines to identify
+    threshold_factor: 0.2           # Multiplier applied to the accumulator threshold
+
+  # Logic for handling crossing or overlapping trace lines
+  intersection_detection:
+    dendrite_threshold: 2.5       # Distance threshold for branching/dendritic line structures
+    max_path_length: 50           # Maximum pixel distance to trace a single path intersection
+
+  # Logic for establishing the central baseline (meanline) of each seismic recording line
+  meanline_detection:
+    base_small_object_size: 500   # Artifacts smaller than this pixel area are filtered out
+    base_trace_spacing: 150       # Expected vertical spacing in pixels between parallel traces
+    angle_padding_deg: 2.0        # Angular tolerance allowed when matching trace directions
+    min_separation_angle_deg: 5.0 # Minimum angle required to distinguish two separate lines
+    separation_distance_ratio: 0.6667 # Ratio used to determine minimum distance between paths (2.0 / 3)
+
+  # Mitchell's Best-Candidate algorithm for even random sampling distributions
+  mitchells_best_candidate:
+    default_num_candidates: 10    # Number of candidate points tested per iteration
+
+  # Feature extraction for tracking the center "ridge" of a bleeding or thick ink line
+  ridge_detection:
+    min_sigma: 0.7071             # Lowest scale (blur radius) for Gaussian filtering
+    max_sigma: 30                 # Highest scale for Gaussian filtering
+    sigma_ratio: 1.9              # Step multiplier between consecutive sigma scales
+    min_ridge_length: 15          # Minimum pixel length to qualify as a valid ridge
+    low_threshold: 0.002          # Lower hysteresis threshold for line linking
+    high_threshold: 0.006         # Upper hysteresis threshold for line starting
+    convex_threshold: 0.00015     # Threshold for local geometry convexity mapping
+    laplacian_sigma: 2.0          # Sigma scale specifically for the Laplacian blob/edge check
+
+  # Cropping and detecting the active recording grid area on the paper
+  roi_detection:
+    base_trace_width: 17          # Standard expected width of a line trace in pixels
+    min_separation_distance: 5     # Minimum pixel distance between distinct ROI boundaries
+    min_separation_angle: 5       # Minimum angular alignment for the boundary bounding box
+    angles:
+      vertical_min: -10           # Minimum tilt bound for vertical constraints
+      vertical_max: 10            # Maximum tilt bound for vertical constraints
+      horizontal_min: -120        # Minimum tilt bound for horizontal constraints
+      horizontal_max: -70         # Maximum tilt bound for horizontal constraints
+
+  # Assigning fragmented line segments back to their continuous parent seismic trace
+  segment_assignment:
+    dist: 45                      # Max search distance for connecting consecutive segments
+    min_hits: 3                   # Minimum confirmation points to validate a line assignment
+    max_overlap: 20               # Maximum pixel overlap allowed between consecutive segments
+    max_save_dist: 1200           # Absolute limit to bridge gaps between broken lines
+    tolerance_window: 15          # Pixel search window width for line alignment tracking
+    base_timing_spacing: 232      # Standard expected pixel distance between time marks (e.g., hours/minutes)
+    min_timing_slope_dist: 5      # Minimum distance to compute local slope for time marks
+    max_timing_slope_dist: 100    # Maximum distance to compute local slope for time marks
+    max_coord_length: 18          # Maximum coordinate array size for localized segment evaluation
+    max_sd: 8                     # Maximum standard deviation allowed for linear regression fit
+
+  # Breaking continuous line extractions down into individual trackable segments
+  segment_detection:
+    num_traces: 24                # Expected total number of recording channels/traces on the drum
+    max_freq_multiplier: 20       # Frequency ceiling multiplier to filter out high-frequency noise
+    min_amplitude: 10             # Minimum pixel wave amplitude to consider it a real signal variation
+    amplitude_divisor: 4          # Scaling factor for amplitude window thresholds
+    offset_divisor: 4             # Scaling factor for baseline offset corrections
+  
+  # Binarization thresholds tailored to handle fading ink or paper discoloration
+  thresholding:
+    adaptive:
+      smoothing_factor: 0.003     # Variance smoothing multiplier for local window math
+      min_num_blocks: 16          # Minimum grid division blocks for localized thresholding
+      default_block_pixel_area: 250000 # Standard pixel area size of an adaptive processing block
+      default_prob_background: 1  # Base probability assignment for clear background paper
+      default_prob_foreground: 0.99 # Base probability assignment for dark ink traces
+    
+    # Global/Histogram thresholding fallback parameters
+    histogram:
+      max_sample_pixels: 256000   # Total pixel count sampled to build the brightness profile
+      max_background_intensity_peak: 128 # Max intensity value allowed to be classified as background peak
+
+    # Parameters for rendering visual debug overlays
+    debug:
+      marker_circle_radius: 20    # Radius of circles drawn to highlight detections in debug images
