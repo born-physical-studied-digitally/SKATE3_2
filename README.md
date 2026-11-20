@@ -1,6 +1,10 @@
-# Seismogram Pipeline
+# SKATE - Seismogram Pipeline
 
-SKATE is an open-source prototy[e software tool, originally developed by Andrew Bartlett et. al. using Python 2, with funding from the AFRL. From a high-resolution image of a legacy seismogram, SKATE produces a GeoJSON file with groups of coordinates of pixels identified as belonging to the recorded waveforms. These groups of coordinates are called segments. This repository contains SKATE 3, a Python 3 version of the original SKATE software (originally converted by Brian Kim), and it is meant to further improve SKATE's ability to digitize scanned paper seismogram data. This improvement work is funded by the National Science Foundation, award [#2410335](https://www.nsf.gov/awardsearch/show-award?AWD_ID=2410335).
+SKATE (Seismogram Kit for Automatic Trace Exraction) is a software tool for the digitization of seismic traces from a high-resolution digital image of a legacy seismogram. SKATE vectorizes traces into GeoJSON segments which can be converted into a digital times series.
+
+SKATE3 updates the orignal SKATE software developed by Retriever Technology, LP from Python 2 to Python 3. User documentation for the original version can be found here [pdf](https://github.com/born-physical-studied-digitally/SKATE3_2/blob/main/docs/SKATE%20User's%20Manual%20v1.0.pdf). 
+
+Current development is being funded by the National Science Foundation, award [#2410335](https://www.nsf.gov/awardsearch/show-award?AWD_ID=2410335) as part of  the [Born Physical, Studied Digitally](https://studieddigitally.org/) project.
 
 ## Installation
 
