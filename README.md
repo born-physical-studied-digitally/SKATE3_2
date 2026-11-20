@@ -183,8 +183,8 @@ For batch processing of multiple seismograms, the package includes queue managem
 
 ```bash
 # Prepare queue with files
-node scripts/queue/prepare_queue.js
+node scripts/queue_tools/prepare_queue.js
 
 # Process queue
-node scripts/queue/process_queue.js
+node scripts/queue_worker/process_queue.js
 ```

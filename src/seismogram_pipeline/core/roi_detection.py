@@ -7,7 +7,8 @@ import cv2
 from skimage.filters import threshold_otsu
 from skimage.morphology import disk
 from skimage.segmentation import find_boundaries
-from scipy.ndimage import label
+from scipy.ndimage.measurements import label
+
 from skimage.transform import hough_line, hough_line_peaks, probabilistic_hough_line
 import skimage.draw as skidraw
 from skimage.color import gray2rgb
@@ -38,10 +39,21 @@ def get_boundary(grayscale_image, scale=1, base_trace_width = 17):
 
   Debug.save_image("roi", "opened_image", opened_image)
 
-  timeStart("invert image")
+
+  timeStart("invert image") 
   opened_image = np.invert(opened_image)
   timeEnd("invert image")
-
+######### Added 5.11
+  timeStart("bridge internal gaps")
+  
+  kernel_vert = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(100 * scale))) #100 is the kernel height guaranteed to span across one trace
+  opened_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel_vert)
+  
+  kernel_horiz = cv2.getStructuringElement(cv2.MORPH_RECT, (int(150 * scale), 1)) #150 is ther kernal width guaranteed to span through texts
+  opened_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel_horiz)
+  
+  timeEnd("bridge internal gaps")
+#########
   timeStart("segment image into connected regions")
   labeled_components, num_components = label(opened_image)
   timeEnd("segment image into connected regions")
