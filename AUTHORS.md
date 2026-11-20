@@ -14,4 +14,4 @@ The code and its community are currently being developed and maintained by the [
 
 * Felix Morales, Northwestern University, USA
 * Brian Kim, Northwestern University, USA
-* Lorraine Hwang, University of Califonia Davis, USA
+* Lorraine Hwang, University of Califonia, Davis, USA
